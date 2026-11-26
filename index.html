@@ -2,7 +2,7 @@
 <title>Irish Flashcards</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
-  /* Layout: one centred card column, English on the front, Irish revealed on Next. */
+  /* Layout: home page of topic tiles; each topic is a 20-card flashcard deck (English on the front, Irish revealed on Next). */
   :root {
     --bg: #f5f3ee;
     --card: #ffffff;
@@ -60,10 +60,27 @@
   }
   .app { width: 100%; max-width: 560px; display: flex; flex-direction: column; flex: 1; gap: 14px; min-width: 0; }
   header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-  h1 { font-size: 18px; margin: 0; font-weight: 700; }
-  .count { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; }
+  h1 { font-size: 18px; margin: 0; font-weight: 700; overflow-wrap: anywhere; }
+  .count { color: var(--muted); font-size: 15px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .bar { height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
   .bar > div { height: 100%; width: 0; background: var(--accent); transition: width .25s ease; }
+  .headleft { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .topics { padding: 8px 12px; font-size: 14px; border-radius: 10px; white-space: nowrap; }
+
+  /* Home */
+  .home-title { font-size: 26px; font-weight: 700; margin: 6px 0 0; }
+  .home-sub { color: var(--muted); font-size: 15px; margin: 0; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .tile {
+    display: flex; flex-direction: column; align-items: flex-start; justify-content: space-between; gap: 10px;
+    min-height: 112px; padding: 16px; text-align: left;
+    background: var(--card); border: 1px solid var(--border); border-radius: 18px; color: var(--text);
+  }
+  .tile .icon { font-size: 26px; line-height: 1; }
+  .tile .name { font-size: 17px; font-weight: 650; overflow-wrap: anywhere; }
+  .tile .meta { font-size: 13px; color: var(--muted); }
+  .tile.completed { border-color: var(--accent); }
+  .tile.completed .meta { color: var(--accent-text); font-weight: 600; }
 
   .card {
     flex: 1;
@@ -126,165 +143,364 @@
 </style>
 
 <div class="app">
-  <header>
-    <h1>Irish Flashcards</h1>
-    <div class="count" id="count">1 / 100</div>
-  </header>
-  <div class="bar"><div id="bar"></div></div>
 
-  <div class="card" id="card" role="button" tabindex="0" aria-label="Reveal the Irish phrase">
-    <div id="front">
-      <div class="label">English</div>
-      <div class="en" id="en"></div>
+  <!-- HOME: ten topics -->
+  <section id="home" class="app" style="flex:0 0 auto;gap:14px">
+    <h2 class="home-title">Irish Flashcards</h2>
+    <p class="home-sub" id="homesub">Choose a topic. Each has 20 phrases.</p>
+    <div class="grid" id="grid"></div>
+    <div class="tools2">
+      <label for="autoplay"><input type="checkbox" id="autoplay" checked> Auto-play audio</label>
+      <select id="voice" aria-label="Voice">
+        <option value="ga_MU_cmg_piper">Munster (Kerry) – male</option>
+        <option value="ga_MU_nnc_piper">Munster (Kerry) – female</option>
+        <option value="ga_UL_anb_piper">Ulster (Donegal) – female</option>
+        <option value="ga_UL_doc_piper">Ulster (Donegal) – male</option>
+        <option value="ga_CO_snc_piper">Connacht (Connemara)</option>
+      </select>
     </div>
-    <div class="answer" id="answer">
-      <div class="label">Irish</div>
-      <div class="ga" id="ga"></div>
-      <button class="listen" id="listen" aria-label="Play Irish audio">&#9654; Listen</button>
-      <div class="audio-msg" id="audiomsg" role="status"></div>
+    <div class="tools2">
+      <button class="linkbtn" id="dlall">Download all audio for offline use</button>
+      <span class="dlstatus" id="dlstatus"></span>
     </div>
-    <div class="hint" id="hint">Tap anywhere, or press Next, to reveal the Irish</div>
-  </div>
+    <div class="tools2">
+      <button class="linkbtn" id="resetprogress">Reset progress</button>
+    </div>
+  </section>
 
-  <div class="row">
-    <button id="prev" aria-label="Previous phrase">&larr; Back</button>
-    <button class="again" id="again" hidden>Practise again</button>
-    <button class="primary" id="next">Show Irish</button>
-  </div>
+  <!-- STUDY: one topic's flashcards -->
+  <section id="study" class="app" hidden>
+    <header>
+      <div class="headleft">
+        <button class="topics" id="topics" aria-label="Back to topics">&lsaquo; Topics</button>
+        <h1 id="topictitle">Topic</h1>
+      </div>
+      <div class="count" id="count">1 / 20</div>
+    </header>
+    <div class="bar"><div id="bar"></div></div>
 
-  <div class="tools">
-    <label for="shuffle"><input type="checkbox" id="shuffle"> Shuffle</label>
-    <button class="linkbtn" id="restart">Restart</button>
-  </div>
+    <div class="card" id="card" role="button" tabindex="0" aria-label="Reveal the Irish phrase">
+      <div id="front">
+        <div class="label">English</div>
+        <div class="en" id="en"></div>
+      </div>
+      <div class="answer" id="answer">
+        <div class="label">Irish</div>
+        <div class="ga" id="ga"></div>
+        <button class="listen" id="listen" aria-label="Play Irish audio">&#9654; Listen</button>
+        <div class="audio-msg" id="audiomsg" role="status"></div>
+      </div>
+      <div class="hint" id="hint">Tap anywhere, or press Next, to reveal the Irish</div>
+    </div>
 
-  <div class="tools2">
-    <label for="autoplay"><input type="checkbox" id="autoplay" checked> Auto-play audio</label>
-    <select id="voice" aria-label="Voice">
-      <option value="ga_MU_cmg_piper">Munster (Kerry) – male</option>
-      <option value="ga_MU_nnc_piper">Munster (Kerry) – female</option>
-      <option value="ga_UL_anb_piper">Ulster (Donegal) – female</option>
-      <option value="ga_UL_doc_piper">Ulster (Donegal) – male</option>
-      <option value="ga_CO_snc_piper">Connacht (Connemara)</option>
-    </select>
-  </div>
-  <div class="tools2">
-    <button class="linkbtn" id="dlall">Download all audio for offline use</button>
-    <span class="dlstatus" id="dlstatus"></span>
-  </div>
+    <div class="row">
+      <button id="prev" aria-label="Previous phrase">&larr; Back</button>
+      <button class="again" id="again" hidden>Practise again</button>
+      <button class="primary" id="next">Show Irish</button>
+    </div>
+
+    <div class="tools">
+      <label for="shuffle"><input type="checkbox" id="shuffle"> Shuffle</label>
+      <button class="linkbtn" id="restart">Restart</button>
+    </div>
+  </section>
+
 </div>
 
 <script>
-const CARDS = [
+/* ---------- Content: 10 topics x 20 phrases [English, Irish] ---------- */
+const SECTIONS = [
+{ id: 'greetings', title: 'Greetings', icon: '👋', cards: [
 ["Hello.","Dia duit."],
-["Hi, how are you?","Haigh, conas atá tú?"],
+["Hello (reply).","Dia is Muire duit."],
 ["Good morning.","Maidin mhaith."],
 ["Good afternoon.","Tráthnóna maith."],
-["Good evening.","Tráthnóna maith."],
 ["Good night.","Oíche mhaith."],
-["Goodbye.","Slán."],
+["Goodbye (to someone leaving).","Slán leat."],
+["Goodbye (to someone staying).","Slán agat."],
 ["See you later.","Feicfidh mé thú níos déanaí."],
 ["See you tomorrow.","Feicfidh mé thú amárach."],
-["Nice to meet you.","Tá áthas orm bualadh leat."],
-["Please.","Le do thoil."],
+["How are you?","Conas atá tú?"],
+["I'm well, thank you.","Tá mé go maith, go raibh maith agat."],
+["And you?","Agus tú féin?"],
 ["Thank you.","Go raibh maith agat."],
+["Thank you very much.","Go raibh míle maith agat."],
 ["You're welcome.","Tá fáilte romhat."],
+["Please.","Le do thoil."],
 ["Excuse me.","Gabh mo leithscéal."],
 ["I'm sorry.","Tá brón orm."],
-["My name is Michael.","Michael is ainm dom."],
+["Welcome!","Fáilte!"],
+["Have a nice day.","Bíodh lá deas agat."]
+]},
+{ id: 'introductions', title: 'Introductions', icon: '🤝', cards: [
+["My name is Sam.","Sam is ainm dom."],
 ["What's your name?","Cén t-ainm atá ort?"],
-["I'm from Australia.","Is as an Astráil mé."],
+["Nice to meet you.","Tá áthas orm bualadh leat."],
 ["Where are you from?","Cá as thú?"],
-["I live in Melbourne.","Táim i mo chónaí i Melbourne."],
-["I'm 30 years old.","Táim 30 bliain d'aois."],
-["I speak a little English.","Labhraím beagán Béarla."],
-["I'm learning English.","Táim ag foghlaim an Bhéarla."],
-["I work as a teacher.","Oibrím mar mhúinteoir."],
-["I'm a student.","Is mac léinn mé."],
-["Yes.","Sea."],
-["No.","Ní hea."],
-["Maybe.","B'fhéidir."],
+["I'm from Ireland.","Is as Éirinn mé."],
+["I'm from Australia.","Is as an Astráil mé."],
+["I live in Dublin.","Tá mé i mo chónaí i mBaile Átha Cliath."],
+["How old are you?","Cén aois thú?"],
+["I'm twenty years old.","Tá mé fiche bliain d'aois."],
+["I speak a little Irish.","Labhraím beagán Gaeilge."],
+["I'm learning Irish.","Tá mé ag foghlaim na Gaeilge."],
+["Do you speak English?","An labhraíonn tú Béarla?"],
+["Do you speak Irish?","An labhraíonn tú Gaeilge?"],
 ["I don't understand.","Ní thuigim."],
 ["I understand.","Tuigim."],
 ["Can you repeat that, please?","An féidir leat é sin a rá arís, le do thoil?"],
 ["Can you speak more slowly?","An féidir leat labhairt níos moille?"],
-["What does \"hello\" mean?","Cad is brí le \"hello\"?"],
-["How do you say \"thank you\" in English?","Conas a deirtear \"thank you\" i mBéarla?"],
-["How do you spell that?","Conas a litríonn tú é sin?"],
-["Do you speak English?","An labhraíonn tú Béarla?"],
-["I don't know.","Níl a fhios agam."],
-["I think so.","Ceapaim go labhraím."],
-["Can you help me?","An féidir leat cabhrú liom?"],
-["Just a moment, please.","Nóiméad amháin, le do thoil."],
-["What is this?","Cad é seo?"],
-["Where is the bathroom?","Cá bhfuil an leithreas?"],
+["I'm a teacher.","Is múinteoir mé."],
+["What do you do?","Cad is gairm duit?"],
+["This is my friend.","Seo mo chara."]
+]},
+{ id: 'numbers', title: 'Numbers', icon: '🔢', cards: [
+["Zero","A náid."],
+["One","A haon."],
+["Two","A dó."],
+["Three","A trí."],
+["Four","A ceathair."],
+["Five","A cúig."],
+["Six","A sé."],
+["Seven","A seacht."],
+["Eight","A hocht."],
+["Nine","A naoi."],
+["Ten","A deich."],
+["Eleven","A haon déag."],
+["Twelve","A dó dhéag."],
+["Fifteen","A cúig déag."],
+["Twenty","Fiche."],
+["Thirty","Tríocha."],
+["Fifty","Caoga."],
+["One hundred","Céad."],
+["One thousand","Míle."],
+["How many?","Cé mhéad?"]
+]},
+{ id: 'days-time', title: 'Days and Time', icon: '🕒', cards: [
+["Monday","Dé Luain."],
+["Tuesday","Dé Máirt."],
+["Wednesday","Dé Céadaoin."],
+["Thursday","Déardaoin."],
+["Friday","Dé hAoine."],
+["Saturday","Dé Sathairn."],
+["Sunday","Dé Domhnaigh."],
+["Today","Inniu."],
+["Tomorrow","Amárach."],
+["Yesterday","Inné."],
+["What day is it today?","Cén lá é inniu?"],
 ["What time is it?","Cén t-am é?"],
-["How much is this?","Cé mhéad atá ar seo?"],
-["Who is that?","Cé hé sin?"],
-["Why?","Cén fáth?"],
-["When does it open?","Cathain a osclaíonn sé?"],
-["When does it close?","Cathain a dhúnann sé?"],
-["How far is it?","Cé chomh fada is atá sé?"],
-["How long does it take?","Cé chomh fada a thógann sé?"],
-["Which one do you recommend?","Cén ceann a mholann tú?"],
-["Is this seat taken?","An bhfuil an suíochán seo tógtha?"],
+["It's one o'clock.","Tá sé a haon a chlog."],
+["It's half past two.","Tá sé leathuair tar éis a dó."],
+["It's a quarter past three.","Tá sé ceathrú tar éis a trí."],
+["It's a quarter to four.","Tá sé ceathrú chun a ceathair."],
+["Week","Seachtain."],
+["Year","Bliain."],
+["Now","Anois."],
+["Later","Níos déanaí."]
+]},
+{ id: 'family', title: 'Family', icon: '👨‍👩‍👧', cards: [
+["Mother","Máthair."],
+["Father","Athair."],
+["Sister","Deirfiúr."],
+["Brother","Deartháir."],
+["Son","Mac."],
+["Daughter","Iníon."],
+["Grandmother","Seanmháthair."],
+["Grandfather","Seanathair."],
+["Aunt","Aintín."],
+["Uncle","Uncail."],
+["Cousin","Col ceathrair."],
+["Husband","Fear céile."],
+["Wife","Bean chéile."],
+["Friend","Cara."],
+["Child","Páiste."],
+["This is my mother.","Seo mo mháthair."],
+["This is my father.","Seo m'athair."],
+["I have a brother.","Tá deartháir agam."],
+["I have two sisters.","Tá beirt deirfiúr agam."],
+["Do you have children?","An bhfuil páistí agat?"]
+]},
+{ id: 'food-drink', title: 'Food and Drink', icon: '🍽️', cards: [
+["Water","Uisce."],
+["Tea","Tae."],
+["Coffee","Caife."],
+["Milk","Bainne."],
+["Bread","Arán."],
+["Cheese","Cáis."],
+["Chicken","Sicín."],
+["Fish","Iasc."],
+["Potatoes","Prátaí."],
+["Apple","Úll."],
+["I'm hungry.","Tá ocras orm."],
+["I'm thirsty.","Tá tart orm."],
+["I'd like water, please.","Ba mhaith liom uisce, le do thoil."],
+["A table for two, please.","Bord do bheirt, le do thoil."],
+["Can I see the menu?","An féidir liom an roghchlár a fheiceáil?"],
+["The bill, please.","An bille, le do thoil."],
+["It's delicious.","Tá sé an-bhlasta."],
+["No sugar, please.","Gan siúcra, le do thoil."],
+["What do you recommend?","Cad a mholann tú?"],
+["Cheers!","Sláinte!"]
+]},
+{ id: 'directions', title: 'Directions', icon: '🧭', cards: [
+["Where is the bathroom?","Cá bhfuil an leithreas?"],
 ["Where is the train station?","Cá bhfuil an stáisiún traenach?"],
 ["Where is the bus stop?","Cá bhfuil an stad bus?"],
+["Where is the airport?","Cá bhfuil an t-aerfort?"],
+["Where is the hotel?","Cá bhfuil an t-óstán?"],
 ["Turn left.","Cas ar chlé."],
 ["Turn right.","Cas ar dheis."],
 ["Go straight ahead.","Téigh díreach ar aghaidh."],
 ["I'm lost.","Tá mé caillte."],
-["Is it near here?","An bhfuil sé in aice anseo?"],
-["One ticket to Melbourne, please.","Ticéad amháin go Melbourne, le do thoil."],
-["How do I get to the hotel?","Conas a shroichim an t-óstán?"],
-["Where is the airport?","Cá bhfuil an t-aerfort?"],
-["I need a taxi.","Teastaíonn tacsaí uaim."],
+["Is it near?","An bhfuil sé gar?"],
+["How far is it?","Cé chomh fada is atá sé?"],
+["It's far away.","Tá sé i bhfad ar shiúl."],
+["Here","Anseo."],
+["There","Ansin."],
 ["Stop here, please.","Stad anseo, le do thoil."],
+["I need a taxi.","Teastaíonn tacsaí uaim."],
+["One ticket, please.","Ticéad amháin, le do thoil."],
 ["What's the next stop?","Cén chéad stad eile?"],
-["A table for two, please.","Bord do bheirt, le do thoil."],
-["Can I see the menu?","An féidir liom an roghchlár a fheiceáil?"],
-["I'd like water, please.","Ba mhaith liom uisce, le do thoil."],
-["I'd like the chicken, please.","Ba mhaith liom an sicín, le do thoil."],
-["What do you recommend?","Cad a mholann tú?"],
-["I'm vegetarian.","Is vegetarian mé."],
-["I'm allergic to nuts.","Tá ailléirge agam do chnónna."],
-["Can I have the bill, please?","An féidir liom an bille a fháil, le do thoil?"],
-["It's delicious.","Tá sé an-bhlasta."],
-["I'm hungry.","Tá ocras orm."],
-["I'm thirsty.","Tá tart orm."],
-["No sugar, please.","Gan siúcra, le do thoil."],
-["Can I pay by card?","An féidir liom íoc le cárta?"],
-["How much does this cost?","Cé mhéad atá ar seo?"],
-["That's too expensive.","Tá sé sin ró-chostasach."],
+["The road","An bóthar."],
+["Can you help me?","An féidir leat cabhrú liom?"]
+]},
+{ id: 'shopping', title: 'Shopping', icon: '🛍️', cards: [
+["How much is this?","Cé mhéad atá ar seo?"],
+["That's too expensive.","Tá sé sin ró-dhaor."],
+["It's cheap.","Tá sé saor."],
 ["Do you have a smaller size?","An bhfuil méid níos lú agat?"],
 ["Do you have a larger size?","An bhfuil méid níos mó agat?"],
 ["I'm just looking.","Níl mé ach ag breathnú."],
 ["I'll take it.","Glacfaidh mé leis."],
-["Can I try this on?","An féidir liom é seo a thriail?"],
+["Can I pay by card?","An féidir liom íoc le cárta?"],
 ["Where can I pay?","Cá háit ar féidir liom íoc?"],
-["Help!","Cabhair!"],
-["Call the police.","Cuir glaoch ar na póilíní."],
-["Call an ambulance.","Cuir glaoch ar otharcharr."],
-["I need a doctor.","Tá dochtúir uaim."],
-["I don't feel well.","Níl mé go maith."],
+["Shop","Siopa."],
+["Money","Airgead."],
+["Open","Oscailte."],
+["Closed","Dúnta."],
+["When does it open?","Cathain a osclaíonn sé?"],
+["When does it close?","Cathain a dhúnann sé?"],
+["Can I try this on?","An féidir liom é seo a thriail?"],
+["A bag","Mála."],
+["Receipt","Admháil."],
+["Change (coins)","Sóinseáil."],
+["Cash","Airgead tirim."]
+]},
+{ id: 'weather', title: 'Weather', icon: '⛅', cards: [
+["What's the weather like?","Cén sórt aimsire atá ann?"],
+["It's a nice day.","Tá lá breá ann."],
+["It's raining.","Tá sé ag cur báistí."],
+["It's sunny.","Tá sé grianmhar."],
+["It's windy.","Tá sé gaofar."],
+["It's cold.","Tá sé fuar."],
+["It's hot.","Tá sé te."],
+["It's cloudy.","Tá sé scamallach."],
+["It's snowing.","Tá sé ag cur sneachta."],
+["It's foggy.","Tá ceo ann."],
+["It's stormy.","Tá stoirm ann."],
+["It's frosty.","Tá sioc ann."],
+["Rain","Báisteach."],
+["Sun","Grian."],
+["Wind","Gaoth."],
+["Snow","Sneachta."],
+["Summer","An samhradh."],
+["Winter","An geimhreadh."],
+["What a lovely day!","Nach breá an lá é!"],
+["Is it going to rain?","An mbeidh sé ag cur báistí?"]
+]},
+{ id: 'feelings', title: 'Feelings', icon: '😊', cards: [
+["I'm happy.","Tá áthas orm."],
+["I'm sad.","Tá mé brónach."],
+["I'm tired.","Tá tuirse orm."],
+["I'm angry.","Tá fearg orm."],
+["I'm afraid.","Tá eagla orm."],
+["I'm cold.","Tá fuacht orm."],
+["I'm hot.","Tá teas orm."],
+["I'm not well.","Níl mé go maith."],
+["I'm excited.","Tá sceitimíní orm."],
+["I'm worried.","Tá imní orm."],
+["I'm bored.","Tá leadrán orm."],
+["I'm proud.","Tá bród orm."],
+["I'm busy.","Tá mé gnóthach."],
+["I'm sick.","Tá mé tinn."],
+["I'm lonely.","Tá uaigneas orm."],
 ["It hurts here.","Tá pian anseo."],
-["I lost my wallet.","Chaill mé mo sparán."],
+["I love you.","Tá grá agam duit."],
 ["I like it.","Is maith liom é."],
 ["I don't like it.","Ní maith liom é."],
-["I'm tired.","Tá tuirse orm."],
-["I'm happy to be here.","Tá áthas orm a bheith anseo."],
-["What do you do for fun?","Cad a dhéanann tú le haghaidh spraoi?"],
-["That's great!","Tá sé sin ar fheabhas!"],
-["Have a nice day!","Bíodh lá deas agat!"]
+["That's great!","Tá sé sin ar fheabhas!"]
+]}
 ];
 
 const $ = id => document.getElementById(id);
 const els = {
+  home: $('home'), study: $('study'), grid: $('grid'), homesub: $('homesub'),
+  topics: $('topics'), topictitle: $('topictitle'),
   card: $('card'), front: $('front'), ga: $('ga'), answer: $('answer'),
   hint: $('hint'), next: $('next'), prev: $('prev'), again: $('again'),
-  count: $('count'), bar: $('bar'), shuffle: $('shuffle'), restart: $('restart')
+  count: $('count'), bar: $('bar'), shuffle: $('shuffle'), restart: $('restart'),
+  reset: $('resetprogress')
 };
 
+let CARDS = [], currentSection = null;
 let deck = [], i = 0, revealed = false, finished = false;
+
+/* ---------- Progress (saved in this browser) ---------- */
+const PROGRESS_KEY = 'ifc-progress-v1';
+function loadProgress() {
+  try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || {}; } catch (e) { return {}; }
+}
+function saveProgress(p) {
+  try { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); } catch (e) {}
+}
+function markComplete(id) {
+  const p = loadProgress();
+  const prev = p[id] || { rounds: 0 };
+  p[id] = { completed: true, rounds: (prev.rounds || 0) + 1 };
+  saveProgress(p);
+}
+
+/* ---------- Home page ---------- */
+function renderHome() {
+  const p = loadProgress();
+  let doneCount = 0;
+  els.grid.innerHTML = '';
+  SECTIONS.forEach(s => {
+    const done = !!(p[s.id] && p[s.id].completed);
+    if (done) doneCount++;
+    const b = document.createElement('button');
+    b.className = 'tile' + (done ? ' completed' : '');
+    b.setAttribute('aria-label', s.title + ', ' + s.cards.length + ' phrases' + (done ? ', completed' : ''));
+    b.innerHTML = '<span class="icon" aria-hidden="true"></span><span class="name"></span><span class="meta"></span>';
+    b.querySelector('.icon').textContent = s.icon;
+    b.querySelector('.name').textContent = s.title;
+    b.querySelector('.meta').textContent = done ? '✓ Completed' : s.cards.length + ' phrases';
+    b.addEventListener('click', () => openSection(s.id));
+    els.grid.appendChild(b);
+  });
+  els.homesub.textContent = doneCount
+    ? doneCount + ' of ' + SECTIONS.length + ' topics completed.'
+    : 'Choose a topic. Each has 20 phrases.';
+}
+
+function openSection(id) {
+  currentSection = SECTIONS.find(s => s.id === id);
+  CARDS = currentSection.cards;
+  els.topictitle.textContent = currentSection.title;
+  els.home.hidden = true;
+  els.study.hidden = false;
+  window.scrollTo(0, 0);
+  buildDeck();
+}
+
+function goHome() {
+  stopAudio();
+  els.study.hidden = true;
+  els.home.hidden = false;
+  currentSection = null;
+  renderHome();
+  window.scrollTo(0, 0);
+}
 
 /* ---------- Irish audio via abair.ie, cached in IndexedDB ---------- */
 const ABAIR_URL = 'https://synthesis.abair.ie/api/synthesise';
@@ -354,7 +570,7 @@ async function getClip(text, voice) {
 }
 
 async function playIrish() {
-  if (finished) return;
+  if (finished || !CARDS.length) return;
   const text = CARDS[deck[i]][1], voice = audioEls.voice.value;
   const token = ++playToken;
   audioEls.msg.textContent = '';
@@ -380,13 +596,13 @@ async function playIrish() {
 
 function stopAudio() { playToken++; if (player) player.pause(); audioEls.msg.textContent = ''; audioEls.listen.removeAttribute('aria-busy'); }
 
-// Fetch every phrase once (a few at a time, politely) so the deck works offline.
+// Fetch every phrase in every topic once (a few at a time, politely) so the app works offline.
 let downloading = false;
 async function downloadAll() {
   if (downloading) return;
   downloading = true;
   const voice = audioEls.voice.value;
-  const texts = [...new Set(CARDS.map(c => c[1]))];
+  const texts = [...new Set(SECTIONS.flatMap(s => s.cards.map(c => c[1])))];
   let done = 0, failed = 0, next = 0;
   audioEls.dlall.disabled = true;
   const worker = async () => {
@@ -408,6 +624,7 @@ audioEls.voice.addEventListener('change', () => { try { localStorage.setItem('vo
 audioEls.autoplay.addEventListener('change', () => { try { localStorage.setItem('autoplay', audioEls.autoplay.checked ? '1' : '0'); } catch (e) {} });
 audioEls.dlall.addEventListener('click', downloadAll);
 
+/* ---------- Flashcards for the open topic ---------- */
 function buildDeck() {
   deck = CARDS.map((c, idx) => idx);
   if (els.shuffle.checked) {
@@ -422,10 +639,10 @@ function buildDeck() {
 
 function render() {
   if (finished) {
-    els.front.innerHTML = '<div class="done">All done!</div>';
+    els.front.innerHTML = '<div class="done">Topic complete!</div>';
     els.answer.classList.remove('show');
     els.answer.hidden = true;
-    els.hint.textContent = 'You went through every phrase. Start again to go around once more.';
+    els.hint.textContent = 'You went through every phrase in ' + currentSection.title + '. Go around again, or choose another topic.';
     els.next.textContent = 'Start again';
     els.again.hidden = true;
     els.prev.disabled = false;
@@ -456,7 +673,7 @@ function advance() {
   }
   stopAudio();
   if (i < deck.length - 1) { i++; revealed = false; }
-  else { finished = true; }
+  else { finished = true; markComplete(currentSection.id); }
   render();
 }
 
@@ -480,17 +697,22 @@ els.next.addEventListener('click', advance);
 els.prev.addEventListener('click', back);
 els.again.addEventListener('click', practiseAgain);
 els.card.addEventListener('click', () => { if (!revealed && !finished) advance(); });
-els.shuffle.addEventListener('change', buildDeck);
+els.shuffle.addEventListener('change', () => { stopAudio(); buildDeck(); });
 els.restart.addEventListener('click', () => { stopAudio(); buildDeck(); });
+els.topics.addEventListener('click', goHome);
+els.reset.addEventListener('click', () => {
+  if (confirm('Clear your completed topics on this device?')) { saveProgress({}); renderHome(); }
+});
 document.addEventListener('keydown', e => {
+  if (els.study.hidden) return;
   const t = e.target;
-  // Let focused buttons and the checkbox handle their own Space/Enter.
-  if (t && (t.tagName === 'BUTTON' || t.tagName === 'INPUT') && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  // Let focused buttons, the select and the checkbox handle their own Space/Enter.
+  if (t && (t.tagName === 'BUTTON' || t.tagName === 'INPUT' || t.tagName === 'SELECT') && e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
   if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') { e.preventDefault(); advance(); }
   else if (e.key === 'ArrowLeft') { e.preventDefault(); back(); }
 });
 
-buildDeck();
+renderHome();
 
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
   window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

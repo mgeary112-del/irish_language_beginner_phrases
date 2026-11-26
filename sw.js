@@ -1,6 +1,6 @@
 // Caches the app itself so it opens offline. Audio is NOT handled here:
 // each device fetches clips from abair.ie on demand and stores them in its own IndexedDB.
-const CACHE = 'irish-flashcards-v1';
+const CACHE = 'irish-flashcards-v2';
 const SHELL = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
